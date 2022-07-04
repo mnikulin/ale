@@ -211,6 +211,17 @@ function! ale#sign#ParseSignsWithGetPlaced(buffer) abort
         if l:sign['name'] is# 'ALEDummySign'
             let l:is_dummy_sign_set = 1
         else
+            let l:git_sign = get(sign_getplaced(a:buffer, { 'group': 'gitgutter', 'lnum': l:sign.lnum })[0].signs, 0)
+            if !empty(l:git_sign) && l:git_sign.name[-5:] !=# 'Error' && l:git_sign.name[-7:] !=# 'Warning'
+                if l:sign.name[-9:] ==# 'ErrorSign'
+                    let l:suffix = 'Error'
+                else
+                    let l:suffix = 'Warning'
+                endif
+                call sign_unplace('gitgutter', { 'buffer': a:buffer, 'id': l:git_sign.id })
+                call sign_place(l:git_sign.id, 'gitgutter', l:git_sign.name . l:suffix, a:buffer,
+                                \ { 'lnum': l:sign.lnum, 'priority': l:git_sign.priority })
+            endif
             call add(l:result, [
             \   str2nr(l:sign['lnum']),
             \   str2nr(l:sign['id']),
